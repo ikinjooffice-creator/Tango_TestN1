@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f7f1e8" />
+  <title>Target 1900 Listening Cards</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar compact-top">
+      <button id="openSettings" class="icon-button" title="設定" aria-label="設定">⚙</button>
+    </header>
+
+    <section class="panel settings" id="settingsPanel">
+      <div class="section-title">
+        <h2>学習条件</h2>
+        <p>番号・Part・Section・定着度で絞り込みます。</p>
+      </div>
+
+      <div class="grid two">
+        <label>Part
+          <select id="partSelect">
+            <option value="all">すべて</option>
+            <option value="p1">Part1 基本 1–800</option>
+            <option value="p2">Part2 重要 801–1500</option>
+            <option value="p3">Part3 難単語 1501–1900</option>
+          </select>
+        </label>
+        <label>Section
+          <select id="sectionSelect">
+            <option value="all">すべて</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="grid two compact">
+        <label>開始 No.
+          <input id="startNo" type="number" inputmode="numeric" min="1" max="1900" value="1" />
+        </label>
+        <label>終了 No.
+          <input id="endNo" type="number" inputmode="numeric" min="1" max="1900" value="100" />
+        </label>
+      </div>
+
+      <div class="grid two compact">
+        <label>意味・例文表示まで（秒）
+          <input id="revealSeconds" type="number" min="0" max="60" step="0.5" value="3" />
+        </label>
+        <label>次の単語へ進むまで（秒）
+          <input id="nextSeconds" type="number" min="0" max="120" step="0.5" value="4" />
+        </label>
+      </div>
+
+      <div class="choice-row">
+        <span>即答</span>
+        <label><input type="radio" name="instantFilter" value="all" checked> 全部</label>
+        <label><input type="radio" name="instantFilter" value="off"> OFF</label>
+        <label><input type="radio" name="instantFilter" value="on"> ON</label>
+      </div>
+
+      <div class="choice-row wrap">
+        <span>回数</span>
+        <label><input class="countFilter" type="checkbox" value="1" checked> 1</label>
+        <label><input class="countFilter" type="checkbox" value="2" checked> 2</label>
+        <label><input class="countFilter" type="checkbox" value="3"> 3</label>
+      </div>
+
+      <div class="choice-row wrap">
+        <label><input id="shuffleMode" type="checkbox"> シャッフル</label>
+        <label><input id="loopMode" type="checkbox" checked> ループ</label>
+        <label><input id="autoSpeak" type="checkbox" checked> 自動読み上げ</label>
+      </div>
+
+      <button id="startBtn" class="primary">学習開始</button>
+    </section>
+
+    <section class="card" aria-live="polite">
+      <div class="card-top">
+        <div class="meta-line">
+          <span id="cardNo">No. -</span>
+          <span id="cardPart">Part -</span>
+          <span id="cardSection">Section -</span>
+        </div>
+      </div>
+
+      <div class="word-area">
+        <div class="word" id="wordText">Start</div>
+        <div class="subtle" id="statusText">条件を選んで「学習開始」を押してください。</div>
+      </div>
+
+      <div class="answer-shell" id="answerBox">
+        <div class="answer-block">
+          <p class="label">意味</p>
+          <p id="meaningText" class="answer-text blank">　</p>
+        </div>
+        <div class="answer-block example-block">
+          <p class="label">短い例文</p>
+          <p id="exampleText" class="example blank">　</p>
+          <p id="translationText" class="translation blank">　</p>
+        </div>
+      </div>
+
+      <div class="time-progress" aria-hidden="true"><span id="progressFill"></span></div>
+
+      <div class="progressline">
+        <span id="deckPosition">0 / 0</span>
+        <span id="timerState">停止中</span>
+        <div class="mini-actions" aria-label="定着度">
+          <button id="instantBtn" class="mini-toggle" title="即答" aria-label="即答">◎</button>
+          <button id="countBtn" class="mini-toggle" title="回数" aria-label="回数">①</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="controls panel" id="controlsPanel" aria-label="操作">
+      <div class="control-grid four">
+        <button id="restartBtn" title="最初から" aria-label="最初から">↻</button>
+        <button id="prevBtn" title="前へ" aria-label="前へ">◀</button>
+        <button id="pauseBtn" class="main-control" title="停止 / 再開" aria-label="停止 / 再開">Ⅱ</button>
+        <button id="nextBtn" title="次へ" aria-label="次へ">▶</button>
+      </div>
+    </section>
+
+    <section class="panel edit-panel">
+      <details>
+        <summary>例文を編集・データを保存/復元</summary>
+        <label>例文
+          <textarea id="editExample" rows="2"></textarea>
+        </label>
+        <label>例文訳
+          <textarea id="editTranslation" rows="2"></textarea>
+        </label>
+        <button id="saveExampleBtn">この単語の例文を保存</button>
+        <div class="button-row left">
+          <button id="exportBtn">学習データを書き出し</button>
+          <label class="file-label">読み込み
+            <input id="importFile" type="file" accept="application/json" />
+          </label>
+        </div>
+        <p class="note">保存先はこのiPhoneのブラウザ内です。Safariの履歴/サイトデータを消すと、学習記録も消える場合があります。</p>
+      </details>
+    </section>
+  </main>
+
+  <script src="words.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
