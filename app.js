@@ -524,11 +524,17 @@
     }
   }
 
+
+  function updateStudyLock() {
+    const locked = el.settingsPanel.classList.contains('collapsed');
+    document.body.classList.toggle('study-lock', locked);
+  }
+
   function bind() {
-    el.openSettings.addEventListener('click', () => el.settingsPanel.classList.toggle('collapsed'));
+    el.openSettings.addEventListener('click', () => { el.settingsPanel.classList.toggle('collapsed'); updateStudyLock(); });
     el.partSelect.addEventListener('change', () => { el.sectionSelect.value = 'all'; applyPartOrSectionRange(); });
     el.sectionSelect.addEventListener('change', applyPartOrSectionRange);
-    el.startBtn.addEventListener('click', () => { buildDeck({ useLastSeen: true }); el.settingsPanel.classList.add('collapsed'); state.paused = false; el.pauseBtn.textContent = 'Ⅱ'; showCurrent(); });
+    el.startBtn.addEventListener('click', () => { buildDeck({ useLastSeen: true }); el.settingsPanel.classList.add('collapsed'); updateStudyLock(); state.paused = false; el.pauseBtn.textContent = 'Ⅱ'; showCurrent(); });
     el.restartBtn.addEventListener('click', () => { restartCurrent(); resetControlsAutoHide(); });
     el.prevBtn.addEventListener('click', () => { goPrev(); resetControlsAutoHide(); });
     el.nextBtn.addEventListener('click', () => { goNext(true); resetControlsAutoHide(); });
@@ -573,4 +579,5 @@
   } else {
     persist();
   }
+  updateStudyLock();
 })();
