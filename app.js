@@ -4,11 +4,13 @@
   const OLD_STORAGE_KEY = 'target1900_listening_cards_v1';
   const SETTINGS_KEY = 'target1900_settings_v2';
   const OLD_SETTINGS_KEY = 'target1900_settings_v1';
+  const HISTORY_KEY = 'target1900_history_v1';
 
   const el = {
     openSettings: $('openSettings'), settingsPanel: $('settingsPanel'), partSelect: $('partSelect'), sectionSelect: $('sectionSelect'),
     startNo: $('startNo'), endNo: $('endNo'), revealSeconds: $('revealSeconds'), nextSeconds: $('nextSeconds'),
     shuffleMode: $('shuffleMode'), loopMode: $('loopMode'), autoSpeak: $('autoSpeak'), startBtn: $('startBtn'),
+    recentDaysBtn: $('recentDaysBtn'), recentDaysOffBtn: $('recentDaysOffBtn'), lastSessionBtn: $('lastSessionBtn'),
     cardNo: $('cardNo'), cardPart: $('cardPart'), cardSection: $('cardSection'), wordText: $('wordText'), statusText: $('statusText'),
     answerBox: $('answerBox'), meaningText: $('meaningText'), exampleText: $('exampleText'), translationText: $('translationText'),
     deckPosition: $('deckPosition'), timerState: $('timerState'), progressFill: $('progressFill'), controlsPanel: $('controlsPanel'), restartBtn: $('restartBtn'), prevBtn: $('prevBtn'), pauseBtn: $('pauseBtn'), nextBtn: $('nextBtn'),
@@ -20,8 +22,8 @@
   const state = {
     deck: [], index: 0, paused: false, answerVisible: false,
     timer: null, timerKind: null, timerStart: 0, timerRemaining: 0, timerDuration: 0, timerElapsed: 0, timerCallback: null, progressRaf: null,
-    holdPaused: false, gesture: null, controlsHideTimer: null,
-    saved: loadSaved(), currentWord: null
+    holdPaused: false, gesture: null, controlsHideTimer: null, activeStudy: false, deckMode: 'study',
+    saved: loadSaved(), history: loadHistory(), currentWord: null
   };
 
   function loadJson(key, fallback) {
@@ -33,6 +35,117 @@
     if (current) return normalizeSaved(current);
     const old = loadJson(OLD_STORAGE_KEY, {});
     return normalizeSaved(old);
+  }
+  function todayKey(offsetDays = 0) {
+    const d = new Date();
+    d.setDate(d.getDate() + offsetDays);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+  function normalizeHistory(history) {
+    const h = history && typeof history === 'object' ? history : {};
+    const days = h.days && typeof h.days === 'object' ? h.days : {};
+    Object.keys(days).forEach(key => {
+      days[key] = uniqueNos(days[key]);
+    });
+    const reviewQueue = h.reviewQueue && typeof h.reviewQueue === 'object' ? h.reviewQueue : {};
+    Object.keys(reviewQueue).forEach(key => {
+      reviewQueue[key] = uniqueNos(reviewQueue[key]);
+    });
+    return {
+      days,
+      reviewQueue,
+      lastStudyDate: typeof h.lastStudyDate === 'string' ? h.lastStudyDate : '',
+      lastSession: uniqueNos(h.lastSession || []),
+      currentSession: uniqueNos(h.currentSession || [])
+    };
+  }
+  function loadHistory() { return normalizeHistory(loadJson(HISTORY_KEY, {})); }
+  function persistHistory() { saveJson(HISTORY_KEY, state.history); }
+  function recentReviewDates() {
+    return [todayKey(-1), todayKey(-2)];
+  }
+  function prepareRecentReviewQueue() {
+    const keep = new Set(recentReviewDates());
+    Object.keys(state.history.reviewQueue || {}).forEach(key => {
+      if (!keep.has(key)) delete state.history.reviewQueue[key];
+    });
+    recentReviewDates().forEach(key => {
+      if (!Object.prototype.hasOwnProperty.call(state.history.reviewQueue, key)) {
+        state.history.reviewQueue[key] = uniqueNos(state.history.days[key] || []);
+      }
+    });
+    persistHistory();
+  }
+  function markReviewViewed(no) {
+    const n = Number(no);
+    if (!Number.isInteger(n)) return;
+    prepareRecentReviewQueue();
+    let changed = false;
+    recentReviewDates().forEach(key => {
+      const before = state.history.reviewQueue[key] || [];
+      const after = before.filter(x => x !== n);
+      if (after.length !== before.length) {
+        state.history.reviewQueue[key] = after;
+        changed = true;
+      }
+    });
+    if (changed) persistHistory();
+  }
+  function uniqueNos(values) {
+    return [...new Set((Array.isArray(values) ? values : []).map(Number).filter(n => Number.isInteger(n) && n >= 1 && n <= 1900))];
+  }
+  function beginStudySession(mode = 'study') {
+    if (state.history.currentSession && state.history.currentSession.length) {
+      state.history.lastSession = uniqueNos(state.history.currentSession);
+    }
+    state.history.currentSession = [];
+    state.activeStudy = true;
+    state.deckMode = mode;
+    if (mode === 'study') state.history.lastStudyDate = todayKey(0);
+    persistHistory();
+  }
+  function recordStudyWord(no) {
+    if (!state.activeStudy || state.deckMode !== 'study' || !Number.isInteger(Number(no))) return;
+    const n = Number(no);
+    const key = todayKey(0);
+    state.history.lastStudyDate = key;
+    if (!state.history.days[key]) state.history.days[key] = [];
+    if (!state.history.days[key].includes(n)) state.history.days[key].push(n);
+    if (!state.history.currentSession.includes(n)) state.history.currentSession.push(n);
+    persistHistory();
+  }
+  function buildDeckFromNos(nos, { instantOffOnly = false, label = '復習', mode = 'review' } = {}) {
+    const set = new Set(uniqueNos(nos));
+    let list = WORDS.filter(w => set.has(w.no));
+    if (instantOffOnly) list = list.filter(w => !getRecord(w.no).instant);
+    list.sort((a, b) => a.no - b.no);
+    if (el.shuffleMode.checked) list = shuffle(list);
+    state.deck = list;
+    state.index = 0;
+    beginStudySession(mode);
+    el.settingsPanel.classList.add('collapsed');
+    updateStudyLock();
+    state.paused = false;
+    el.pauseBtn.textContent = 'Ⅱ';
+    if (!state.deck.length) {
+      showCurrent({ speak: false, resetTimers: false });
+      el.statusText.textContent = `${label}に該当する単語がありません。`;
+      return;
+    }
+    showCurrent();
+  }
+  function recentTwoDaysNos() {
+    prepareRecentReviewQueue();
+    return uniqueNos([
+      ...(state.history.reviewQueue[todayKey(-1)] || []),
+      ...(state.history.reviewQueue[todayKey(-2)] || [])
+    ]);
+  }
+  function lastSessionNos() {
+    return uniqueNos((state.history.lastSession && state.history.lastSession.length) ? state.history.lastSession : state.history.currentSession);
   }
   function normalizeSaved(saved) {
     const out = saved && typeof saved === 'object' ? saved : {};
@@ -152,6 +265,8 @@
     el.deckPosition.textContent = `${state.index + 1} / ${state.deck.length}`;
     updateStatusButtons();
     saveSettings();
+    if (state.deckMode === 'review') markReviewViewed(w.no);
+    else recordStudyWord(w.no);
     if (speak && el.autoSpeak.checked) speakWord(w.word);
     if (resetTimers) scheduleReveal();
   }
@@ -534,7 +649,10 @@
     el.openSettings.addEventListener('click', () => { el.settingsPanel.classList.toggle('collapsed'); updateStudyLock(); });
     el.partSelect.addEventListener('change', () => { el.sectionSelect.value = 'all'; applyPartOrSectionRange(); });
     el.sectionSelect.addEventListener('change', applyPartOrSectionRange);
-    el.startBtn.addEventListener('click', () => { buildDeck({ useLastSeen: true }); el.settingsPanel.classList.add('collapsed'); updateStudyLock(); state.paused = false; el.pauseBtn.textContent = 'Ⅱ'; showCurrent(); });
+    el.startBtn.addEventListener('click', () => { beginStudySession(); buildDeck({ useLastSeen: true }); el.settingsPanel.classList.add('collapsed'); updateStudyLock(); state.paused = false; el.pauseBtn.textContent = 'Ⅱ'; showCurrent(); });
+    el.recentDaysBtn.addEventListener('click', () => buildDeckFromNos(recentTwoDaysNos(), { label: '昨日・一昨日の復習' }));
+    el.recentDaysOffBtn.addEventListener('click', () => buildDeckFromNos(recentTwoDaysNos(), { instantOffOnly: true, label: '昨日・一昨日の即答OFF復習' }));
+    el.lastSessionBtn.addEventListener('click', () => buildDeckFromNos(lastSessionNos(), { label: '前回の復習' }));
     el.restartBtn.addEventListener('click', () => { restartCurrent(); resetControlsAutoHide(); });
     el.prevBtn.addEventListener('click', () => { goPrev(); resetControlsAutoHide(); });
     el.nextBtn.addEventListener('click', () => { goNext(true); resetControlsAutoHide(); });

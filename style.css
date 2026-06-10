@@ -100,3 +100,9 @@ body.study-lock .settings.collapsed {
 @media(max-width:520px){
   .app{padding-left:12px;padding-right:12px}.grid.two{grid-template-columns:1fr}.word{font-size:42px}.card{min-height:532px;grid-template-rows:auto 118px 300px auto;padding:18px 16px 14px}h1{font-size:26px}.mini-toggle{width:32px;height:32px;min-height:32px}.control-grid button{width:50px}.control-grid .main-control{width:58px}.example{font-size:17px}
 }
+
+.review-tools{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+.review-title{margin:0 0 8px;font-size:12px;color:var(--muted);letter-spacing:.08em}
+.review-buttons{display:flex;gap:8px;flex-wrap:wrap}
+.review-buttons button{min-height:36px;padding:0 12px;border-radius:12px;font-size:13px;background:#fffdf8;color:var(--ink)}
+.small-note{font-size:11px;margin:8px 0 0;color:var(--muted)}
