@@ -58,12 +58,24 @@
       days,
       reviewQueue,
       lastStudyDate: typeof h.lastStudyDate === 'string' ? h.lastStudyDate : '',
+      lastStudyViewedNo: Number.isInteger(Number(h.lastStudyViewedNo)) ? Number(h.lastStudyViewedNo) : (Number.isInteger(Number(h.lastViewedNo)) ? Number(h.lastViewedNo) : null),
+      lastReviewViewedNo: Number.isInteger(Number(h.lastReviewViewedNo)) ? Number(h.lastReviewViewedNo) : null,
       lastSession: uniqueNos(h.lastSession || []),
       currentSession: uniqueNos(h.currentSession || [])
     };
   }
   function loadHistory() { return normalizeHistory(loadJson(HISTORY_KEY, {})); }
   function persistHistory() { saveJson(HISTORY_KEY, state.history); }
+  function recordLastViewed(no, mode = 'study') {
+    const n = Number(no);
+    if (!Number.isInteger(n) || n < 1 || n > 1900) return;
+    if (mode === 'review') {
+      state.history.lastReviewViewedNo = n;
+    } else {
+      state.history.lastStudyViewedNo = n;
+    }
+    persistHistory();
+  }
   function recentReviewDates() {
     return [todayKey(-1), todayKey(-2)];
   }
@@ -227,7 +239,7 @@
     state.index = 0;
     if (useLastSeen && state.deck.length) {
       const prior = loadJson(SETTINGS_KEY, null) || loadJson(OLD_SETTINGS_KEY, null) || {};
-      const lastNo = Number(prior.lastNo || 0);
+      const lastNo = Number(state.history.lastStudyViewedNo || prior.lastNo || 0);
       const pos = state.deck.findIndex(w => w.no === lastNo);
       if (pos >= 0) state.index = pos;
     }
@@ -264,9 +276,14 @@
     el.editTranslation.value = rec.translation || w.translation;
     el.deckPosition.textContent = `${state.index + 1} / ${state.deck.length}`;
     updateStatusButtons();
+    if (state.deckMode === 'review') {
+      recordLastViewed(w.no, 'review');
+      markReviewViewed(w.no);
+    } else {
+      recordLastViewed(w.no, 'study');
+      recordStudyWord(w.no);
+    }
     saveSettings();
-    if (state.deckMode === 'review') markReviewViewed(w.no);
-    else recordStudyWord(w.no);
     if (speak && el.autoSpeak.checked) speakWord(w.word);
     if (resetTimers) scheduleReveal();
   }
@@ -483,7 +500,7 @@
       part: el.partSelect.value, section: el.sectionSelect.value, start: el.startNo.value, end: el.endNo.value,
       reveal: el.revealSeconds.value, next: el.nextSeconds.value, shuffle: el.shuffleMode.checked,
       loop: el.loopMode.checked, autoSpeak: el.autoSpeak.checked, instant: instantFilter(), counts: selectedCounts(),
-      lastNo: state.currentWord ? state.currentWord.no : ((loadJson(SETTINGS_KEY, null) || {}).lastNo || null)
+      lastNo: state.deckMode === 'study' && state.currentWord ? state.currentWord.no : ((loadJson(SETTINGS_KEY, null) || {}).lastNo || null)
     };
     saveJson(SETTINGS_KEY, settings);
   }
