@@ -5,9 +5,38 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
   <meta name="theme-color" content="#eef8fb" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta id="appleStatusBarMeta" name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="mobile-web-app-capable" content="yes" />
   <title>Target 1900 Listening Cards</title>
+  <script>
+    (function () {
+      var THEME_KEY = 'target1900_theme_v1';
+      var theme = localStorage.getItem(THEME_KEY) || 'morning';
+      var colors = {
+        morning: '#eef8fb',
+        starry: '#081426',
+        okinawa: '#e7fbfb',
+        cafe: '#f3eee7',
+        forest: '#eaf2e7'
+      };
+      var statusStyles = {
+        morning: 'default',
+        starry: 'black-translucent',
+        okinawa: 'default',
+        cafe: 'default',
+        forest: 'black-translucent'
+      };
+      var color = colors[theme] || colors.morning;
+      document.documentElement.classList.add('theme-' + theme);
+      document.documentElement.style.backgroundColor = color;
+      document.documentElement.style.setProperty('--boot-theme-color', color);
+      var themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.setAttribute('content', color);
+      var appleMeta = document.getElementById('appleStatusBarMeta');
+      if (appleMeta) appleMeta.setAttribute('content', statusStyles[theme] || 'default');
+      window.__TARGET1900_BOOT_THEME__ = theme;
+    })();
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>

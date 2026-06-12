@@ -17,7 +17,7 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body,button,.answer-shell{touch-action:manipulation}
-html{background:var(--bg)}
+html{background:var(--boot-theme-color,var(--bg))}
 body{
   margin:0;
   background:linear-gradient(180deg,var(--bg),#f3eadf);
@@ -26,7 +26,11 @@ body{
   line-height:1.6;
 }
 button,input,select,textarea{font:inherit;color:inherit}
-.app{max-width:760px;margin:0 auto;padding:18px 14px 42px;padding-bottom:calc(42px + env(safe-area-inset-bottom))}
+.app{max-width:760px;margin:0 auto;padding:18px 14px 42px;padding-top:calc(18px + env(safe-area-inset-top));padding-bottom:calc(42px + env(safe-area-inset-bottom))}
+html,body{min-height:100dvh}
+@supports(padding:max(0px)) {
+  body{padding-top:0}
+}
 .topbar{display:flex;align-items:center;justify-content:flex-end;gap:16px;margin:4px 0 12px}.compact-top{min-height:44px}
 .eyebrow{margin:0;color:var(--muted);font-size:12px;letter-spacing:.13em;text-transform:uppercase}
 h1{margin:0;font-size:30px;font-weight:650;letter-spacing:-.03em}
@@ -551,6 +555,18 @@ body.theme-starry .hard-toggle.hard-on{
 body.theme-starry .edit-panel summary{color:#f0d68b}
 body.theme-starry .blank{color:transparent}
 
+
+/* v26: theme-aware status bar / home-screen support */
+body.theme-morning{background-color:#eef8fb}
+body.theme-okinawa{background-color:#e7fbfb}
+body.theme-cafe{background-color:#f3eee7}
+body.theme-forest{background-color:#eaf2e7}
+html.theme-morning body, html.theme-okinawa body, html.theme-cafe body, html.theme-forest body{
+  background-attachment:fixed;
+}
+@media (display-mode: standalone) {
+  .app{padding-top:calc(18px + env(safe-area-inset-top));}
+}
 /* v25: PWA status-bar color support + wider scattered stars */
 html.theme-morning{background:#eef8fb}
 html.theme-starry{background:#081426}

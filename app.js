@@ -37,6 +37,13 @@
     cafe: '#f3eee7',
     forest: '#eaf2e7'
   };
+  const THEME_STATUSBAR = {
+    morning: 'default',
+    starry: 'black-translucent',
+    okinawa: 'default',
+    cafe: 'default',
+    forest: 'black-translucent'
+  };
   function applyTheme(theme) {
     const value = THEME_VALUES.includes(theme) ? theme : 'morning';
     const themeClasses = THEME_VALUES.map(t => `theme-${t}`);
@@ -45,12 +52,18 @@
     document.documentElement.classList.add(`theme-${value}`);
     document.body.classList.add(`theme-${value}`);
     if (el.themeSelect) el.themeSelect.value = value;
+    const color = THEME_COLORS[value] || THEME_COLORS.morning;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', THEME_COLORS[value] || THEME_COLORS.morning);
+    if (meta) meta.setAttribute('content', color);
+    const appleMeta = document.getElementById('appleStatusBarMeta');
+    if (appleMeta) appleMeta.setAttribute('content', THEME_STATUSBAR[value] || 'default');
+    document.documentElement.style.backgroundColor = color;
+    document.documentElement.style.setProperty('--boot-theme-color', color);
+    if (document.body) document.body.style.backgroundColor = color;
     localStorage.setItem(THEME_KEY, value);
   }
   function restoreTheme() {
-    const savedTheme = localStorage.getItem(THEME_KEY) || 'morning';
+    const savedTheme = window.__TARGET1900_BOOT_THEME__ || localStorage.getItem(THEME_KEY) || 'morning';
     applyTheme(savedTheme);
   }
 
