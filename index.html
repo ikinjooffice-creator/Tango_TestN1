@@ -81,8 +81,10 @@
           <button id="recentDaysBtn" type="button">2日分</button>
           <button id="recentDaysOffBtn" type="button">2日OFF</button>
           <button id="lastSessionBtn" type="button">前回</button>
+          <button id="hardModeBtn" type="button">苦手</button>
+          <button id="exportHardBtn" type="button">苦手CSV</button>
         </div>
-        <p class="note small-note">通常学習で表示した単語を日付ごとに自動記録します。「2日分」は昨日・一昨日の未復習分を呼び出し、復習モードで一度表示された単語は復習リストから外れます。学習データの復元形式は変更しません。</p>
+        <p class="note small-note">通常学習で表示した単語を日付ごとに自動記録します。「2日分」は昨日・一昨日の未復習分を呼び出し、復習モードで一度表示された単語は復習リストから外れます。「苦手」は★を付けた単語だけを呼び出します。学習データの復元形式は変更しません。</p>
       </div>
     </section>
 
@@ -118,6 +120,7 @@
         <span id="deckPosition">0 / 0</span>
         <span id="timerState">停止中</span>
         <div class="mini-actions" aria-label="定着度">
+          <button id="hardBtn" class="mini-toggle hard-toggle" title="苦手" aria-label="苦手">★</button>
           <button id="instantBtn" class="mini-toggle" title="即答" aria-label="即答">◎</button>
           <button id="countBtn" class="mini-toggle" title="回数" aria-label="回数">①</button>
         </div>

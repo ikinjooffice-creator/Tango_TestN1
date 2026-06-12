@@ -106,3 +106,6 @@ body.study-lock .settings.collapsed {
 .review-buttons{display:flex;gap:8px;flex-wrap:wrap}
 .review-buttons button{min-height:36px;padding:0 12px;border-radius:12px;font-size:13px;background:#fffdf8;color:var(--ink)}
 .small-note{font-size:11px;margin:8px 0 0;color:var(--muted)}
+.hard-toggle.on,.hard-toggle.hard-on{background:#f5e1dc;border-color:#debeb5;color:#8b4a3a}
+.review-buttons{display:flex;flex-wrap:wrap;gap:8px}
+.review-buttons button{padding:8px 12px;min-height:38px;font-size:13px}

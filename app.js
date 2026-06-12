@@ -5,16 +5,18 @@
   const SETTINGS_KEY = 'target1900_settings_v2';
   const OLD_SETTINGS_KEY = 'target1900_settings_v1';
   const HISTORY_KEY = 'target1900_history_v1';
+  const HARD_KEY = 'target1900_hard_flags_v1';
 
   const el = {
     openSettings: $('openSettings'), settingsPanel: $('settingsPanel'), partSelect: $('partSelect'), sectionSelect: $('sectionSelect'),
     startNo: $('startNo'), endNo: $('endNo'), revealSeconds: $('revealSeconds'), nextSeconds: $('nextSeconds'),
     shuffleMode: $('shuffleMode'), loopMode: $('loopMode'), autoSpeak: $('autoSpeak'), startBtn: $('startBtn'),
     recentDaysBtn: $('recentDaysBtn'), recentDaysOffBtn: $('recentDaysOffBtn'), lastSessionBtn: $('lastSessionBtn'),
+    hardModeBtn: $('hardModeBtn'), exportHardBtn: $('exportHardBtn'),
     cardNo: $('cardNo'), cardPart: $('cardPart'), cardSection: $('cardSection'), wordText: $('wordText'), statusText: $('statusText'),
     answerBox: $('answerBox'), meaningText: $('meaningText'), exampleText: $('exampleText'), translationText: $('translationText'),
     deckPosition: $('deckPosition'), timerState: $('timerState'), progressFill: $('progressFill'), controlsPanel: $('controlsPanel'), restartBtn: $('restartBtn'), prevBtn: $('prevBtn'), pauseBtn: $('pauseBtn'), nextBtn: $('nextBtn'),
-    instantBtn: $('instantBtn'), countBtn: $('countBtn'),
+    hardBtn: $('hardBtn'), instantBtn: $('instantBtn'), countBtn: $('countBtn'),
     editExample: $('editExample'), editTranslation: $('editTranslation'), saveExampleBtn: $('saveExampleBtn'),
     exportBtn: $('exportBtn'), importFile: $('importFile')
   };
@@ -23,7 +25,7 @@
     deck: [], index: 0, paused: false, answerVisible: false,
     timer: null, timerKind: null, timerStart: 0, timerRemaining: 0, timerDuration: 0, timerElapsed: 0, timerCallback: null, progressRaf: null,
     holdPaused: false, gesture: null, controlsHideTimer: null, activeStudy: false, deckMode: 'study',
-    saved: loadSaved(), history: loadHistory(), currentWord: null
+    saved: loadSaved(), history: loadHistory(), hardFlags: loadHardFlags(), currentWord: null
   };
 
   function loadJson(key, fallback) {
@@ -35,6 +37,20 @@
     if (current) return normalizeSaved(current);
     const old = loadJson(OLD_STORAGE_KEY, {});
     return normalizeSaved(old);
+  }
+  function loadHardFlags() {
+    const data = loadJson(HARD_KEY, []);
+    return uniqueNos(data);
+  }
+  function persistHardFlags() { saveJson(HARD_KEY, state.hardFlags); }
+  function isHard(no) { return state.hardFlags.includes(Number(no)); }
+  function toggleHard(no) {
+    const n = Number(no);
+    if (!Number.isInteger(n) || n < 1 || n > 1900) return;
+    if (isHard(n)) state.hardFlags = state.hardFlags.filter(x => x !== n);
+    else state.hardFlags.push(n);
+    state.hardFlags = uniqueNos(state.hardFlags).sort((a, b) => a - b);
+    persistHardFlags();
   }
   function todayKey(offsetDays = 0) {
     const d = new Date();
@@ -60,6 +76,7 @@
       lastStudyDate: typeof h.lastStudyDate === 'string' ? h.lastStudyDate : '',
       lastStudyViewedNo: Number.isInteger(Number(h.lastStudyViewedNo)) ? Number(h.lastStudyViewedNo) : (Number.isInteger(Number(h.lastViewedNo)) ? Number(h.lastViewedNo) : null),
       lastReviewViewedNo: Number.isInteger(Number(h.lastReviewViewedNo)) ? Number(h.lastReviewViewedNo) : null,
+      lastHardViewedNo: Number.isInteger(Number(h.lastHardViewedNo)) ? Number(h.lastHardViewedNo) : null,
       lastSession: uniqueNos(h.lastSession || []),
       currentSession: uniqueNos(h.currentSession || [])
     };
@@ -71,6 +88,8 @@
     if (!Number.isInteger(n) || n < 1 || n > 1900) return;
     if (mode === 'review') {
       state.history.lastReviewViewedNo = n;
+    } else if (mode === 'hard') {
+      state.history.lastHardViewedNo = n;
     } else {
       state.history.lastStudyViewedNo = n;
     }
@@ -129,7 +148,7 @@
     if (!state.history.currentSession.includes(n)) state.history.currentSession.push(n);
     persistHistory();
   }
-  function buildDeckFromNos(nos, { instantOffOnly = false, label = '復習', mode = 'review' } = {}) {
+  function buildDeckFromNos(nos, { instantOffOnly = false, label = '復習', mode = 'review', useLastSeen = true } = {}) {
     const set = new Set(uniqueNos(nos));
     let list = WORDS.filter(w => set.has(w.no));
     if (instantOffOnly) list = list.filter(w => !getRecord(w.no).instant);
@@ -137,6 +156,13 @@
     if (el.shuffleMode.checked) list = shuffle(list);
     state.deck = list;
     state.index = 0;
+    if (useLastSeen && state.deck.length) {
+      let lastNo = 0;
+      if (mode === 'hard') lastNo = Number(state.history.lastHardViewedNo || 0);
+      else if (mode === 'review') lastNo = Number(state.history.lastReviewViewedNo || 0);
+      const pos = state.deck.findIndex(w => w.no === lastNo);
+      if (pos >= 0) state.index = pos;
+    }
     beginStudySession(mode);
     el.settingsPanel.classList.add('collapsed');
     updateStudyLock();
@@ -158,6 +184,34 @@
   }
   function lastSessionNos() {
     return uniqueNos((state.history.lastSession && state.history.lastSession.length) ? state.history.lastSession : state.history.currentSession);
+  }
+  function hardNos() {
+    return uniqueNos(state.hardFlags).sort((a, b) => a - b);
+  }
+  function csvEscape(value) {
+    const v = String(value ?? '');
+    return /[",\n\r]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v;
+  }
+  function exportHardCsv() {
+    const rows = [['No','word','meaning','example','translation']];
+    hardNos().forEach(no => {
+      const w = WORDS.find(item => item.no === no);
+      if (!w) return;
+      const rec = getRecord(no);
+      rows.push([w.no, w.word, w.meaning, rec.example || w.example || '', rec.translation || w.translation || '']);
+    });
+    if (rows.length === 1) {
+      alert('苦手フラグが付いた単語がありません。');
+      return;
+    }
+    const csv = '\ufeff' + rows.map(row => row.map(csvEscape).join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'target1900-hard-words.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   }
   function normalizeSaved(saved) {
     const out = saved && typeof saved === 'object' ? saved : {};
@@ -279,6 +333,8 @@
     if (state.deckMode === 'review') {
       recordLastViewed(w.no, 'review');
       markReviewViewed(w.no);
+    } else if (state.deckMode === 'hard') {
+      recordLastViewed(w.no, 'hard');
     } else {
       recordLastViewed(w.no, 'study');
       recordStudyWord(w.no);
@@ -482,12 +538,14 @@
   function updateStatusButtons() {
     const w = state.currentWord;
     if (!w) {
+      el.hardBtn.className = 'mini-toggle hard-toggle';
       el.instantBtn.className = 'mini-toggle';
       el.countBtn.className = 'mini-toggle';
       el.countBtn.textContent = '①';
       return;
     }
     const rec = getRecord(w.no);
+    el.hardBtn.className = isHard(w.no) ? 'mini-toggle hard-toggle on hard-on' : 'mini-toggle hard-toggle';
     el.instantBtn.className = rec.instant ? 'mini-toggle on' : 'mini-toggle';
     el.instantBtn.textContent = '◎';
     const count = clamp(Number(rec.count || 1), 1, 3);
@@ -667,14 +725,21 @@
     el.partSelect.addEventListener('change', () => { el.sectionSelect.value = 'all'; applyPartOrSectionRange(); });
     el.sectionSelect.addEventListener('change', applyPartOrSectionRange);
     el.startBtn.addEventListener('click', () => { beginStudySession(); buildDeck({ useLastSeen: true }); el.settingsPanel.classList.add('collapsed'); updateStudyLock(); state.paused = false; el.pauseBtn.textContent = 'Ⅱ'; showCurrent(); });
-    el.recentDaysBtn.addEventListener('click', () => buildDeckFromNos(recentTwoDaysNos(), { label: '昨日・一昨日の復習' }));
-    el.recentDaysOffBtn.addEventListener('click', () => buildDeckFromNos(recentTwoDaysNos(), { instantOffOnly: true, label: '昨日・一昨日の即答OFF復習' }));
-    el.lastSessionBtn.addEventListener('click', () => buildDeckFromNos(lastSessionNos(), { label: '前回の復習' }));
+    el.recentDaysBtn.addEventListener('click', () => buildDeckFromNos(recentTwoDaysNos(), { label: '昨日・一昨日の復習', mode: 'review' }));
+    el.recentDaysOffBtn.addEventListener('click', () => buildDeckFromNos(recentTwoDaysNos(), { instantOffOnly: true, label: '昨日・一昨日の即答OFF復習', mode: 'review' }));
+    el.lastSessionBtn.addEventListener('click', () => buildDeckFromNos(lastSessionNos(), { label: '前回の復習', mode: 'review' }));
+    el.hardModeBtn.addEventListener('click', () => buildDeckFromNos(hardNos(), { label: '苦手モード', mode: 'hard' }));
+    el.exportHardBtn.addEventListener('click', exportHardCsv);
     el.restartBtn.addEventListener('click', () => { restartCurrent(); resetControlsAutoHide(); });
     el.prevBtn.addEventListener('click', () => { goPrev(); resetControlsAutoHide(); });
     el.nextBtn.addEventListener('click', () => { goNext(true); resetControlsAutoHide(); });
     el.pauseBtn.addEventListener('click', () => { pauseOrResume(); resetControlsAutoHide(); });
     bindAnswerGestures();
+    el.hardBtn.addEventListener('click', () => {
+      if (!state.currentWord) return;
+      toggleHard(state.currentWord.no);
+      updateStatusButtons();
+    });
     el.instantBtn.addEventListener('click', () => {
       if (!state.currentWord) return;
       const rec = getRecord(state.currentWord.no);
