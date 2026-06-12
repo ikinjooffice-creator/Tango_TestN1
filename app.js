@@ -6,9 +6,10 @@
   const OLD_SETTINGS_KEY = 'target1900_settings_v1';
   const HISTORY_KEY = 'target1900_history_v1';
   const HARD_KEY = 'target1900_hard_flags_v1';
+  const THEME_KEY = 'target1900_theme_v1';
 
   const el = {
-    openSettings: $('openSettings'), settingsPanel: $('settingsPanel'), partSelect: $('partSelect'), sectionSelect: $('sectionSelect'),
+    openSettings: $('openSettings'), settingsPanel: $('settingsPanel'), themeSelect: $('themeSelect'), partSelect: $('partSelect'), sectionSelect: $('sectionSelect'),
     startNo: $('startNo'), endNo: $('endNo'), revealSeconds: $('revealSeconds'), nextSeconds: $('nextSeconds'),
     shuffleMode: $('shuffleMode'), loopMode: $('loopMode'), autoSpeak: $('autoSpeak'), startBtn: $('startBtn'),
     recentDaysBtn: $('recentDaysBtn'), recentDaysOffBtn: $('recentDaysOffBtn'), lastSessionBtn: $('lastSessionBtn'),
@@ -27,6 +28,28 @@
     holdPaused: false, gesture: null, controlsHideTimer: null, activeStudy: false, deckMode: 'study',
     saved: loadSaved(), history: loadHistory(), hardFlags: loadHardFlags(), currentWord: null
   };
+
+  const THEME_VALUES = ['morning', 'starry', 'okinawa', 'cafe', 'forest'];
+  const THEME_COLORS = {
+    morning: '#eef8fb',
+    starry: '#081426',
+    okinawa: '#e7fbfb',
+    cafe: '#f3eee7',
+    forest: '#eaf2e7'
+  };
+  function applyTheme(theme) {
+    const value = THEME_VALUES.includes(theme) ? theme : 'morning';
+    document.body.classList.remove(...THEME_VALUES.map(t => `theme-${t}`));
+    document.body.classList.add(`theme-${value}`);
+    if (el.themeSelect) el.themeSelect.value = value;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute('content', THEME_COLORS[value] || THEME_COLORS.morning);
+    localStorage.setItem(THEME_KEY, value);
+  }
+  function restoreTheme() {
+    const savedTheme = localStorage.getItem(THEME_KEY) || 'morning';
+    applyTheme(savedTheme);
+  }
 
   function loadJson(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key)) || fallback; } catch { return fallback; }
@@ -558,7 +581,8 @@
       part: el.partSelect.value, section: el.sectionSelect.value, start: el.startNo.value, end: el.endNo.value,
       reveal: el.revealSeconds.value, next: el.nextSeconds.value, shuffle: el.shuffleMode.checked,
       loop: el.loopMode.checked, autoSpeak: el.autoSpeak.checked, instant: instantFilter(), counts: selectedCounts(),
-      lastNo: state.deckMode === 'study' && state.currentWord ? state.currentWord.no : ((loadJson(SETTINGS_KEY, null) || {}).lastNo || null)
+      lastNo: state.deckMode === 'study' && state.currentWord ? state.currentWord.no : ((loadJson(SETTINGS_KEY, null) || {}).lastNo || null),
+      theme: el.themeSelect ? el.themeSelect.value : (localStorage.getItem(THEME_KEY) || 'morning')
     };
     saveJson(SETTINGS_KEY, settings);
   }
@@ -578,6 +602,7 @@
     if (radio) radio.checked = true;
     const savedCounts = (s.counts || [1,2]).map(n => clamp(Number(n || 1), 1, 3));
     document.querySelectorAll('.countFilter').forEach(c => { c.checked = savedCounts.includes(Number(c.value)); });
+    if (s.theme) applyTheme(s.theme);
   }
 
   function exportData() {
@@ -722,6 +747,7 @@
 
   function bind() {
     el.openSettings.addEventListener('click', () => { el.settingsPanel.classList.toggle('collapsed'); updateStudyLock(); });
+    if (el.themeSelect) el.themeSelect.addEventListener('change', () => { applyTheme(el.themeSelect.value); saveSettings(); });
     el.partSelect.addEventListener('change', () => { el.sectionSelect.value = 'all'; applyPartOrSectionRange(); });
     el.sectionSelect.addEventListener('change', applyPartOrSectionRange);
     el.startBtn.addEventListener('click', () => { beginStudySession(); buildDeck({ useLastSeen: true }); el.settingsPanel.classList.add('collapsed'); updateStudyLock(); state.paused = false; el.pauseBtn.textContent = 'Ⅱ'; showCurrent(); });
@@ -770,6 +796,7 @@
   }
 
   initSections();
+  restoreTheme();
   restoreSettings();
   bind();
   buildDeck({ useLastSeen: true });
