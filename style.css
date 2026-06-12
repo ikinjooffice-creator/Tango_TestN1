@@ -550,3 +550,57 @@ body.theme-starry .hard-toggle.hard-on{
 }
 body.theme-starry .edit-panel summary{color:#f0d68b}
 body.theme-starry .blank{color:transparent}
+
+/* v25: PWA status-bar color support + wider scattered stars */
+html.theme-morning{background:#eef8fb}
+html.theme-starry{background:#081426}
+html.theme-okinawa{background:#e7fbfb}
+html.theme-cafe{background:#f3eee7}
+html.theme-forest{background:#eaf2e7}
+
+body.theme-starry{
+  min-height:100dvh;
+  background-color:#081426;
+}
+body.theme-starry::before{
+  background-image:
+    radial-gradient(circle at 8% 7%, rgba(255,246,214,.70) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 22% 14%, rgba(202,222,255,.42) 0 .9px, transparent 1.6px),
+    radial-gradient(circle at 41% 8%, rgba(255,255,255,.30) 0 .8px, transparent 1.4px),
+    radial-gradient(circle at 61% 16%, rgba(255,246,214,.54) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 83% 9%, rgba(202,222,255,.46) 0 .9px, transparent 1.5px),
+    radial-gradient(circle at 96% 20%, rgba(255,255,255,.28) 0 .8px, transparent 1.5px),
+    radial-gradient(circle at 14% 31%, rgba(255,246,214,.62) 0 1.3px, transparent 2px),
+    radial-gradient(circle at 37% 27%, rgba(202,222,255,.52) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 58% 35%, rgba(255,255,255,.28) 0 .8px, transparent 1.5px),
+    radial-gradient(circle at 76% 29%, rgba(255,246,214,.54) 0 1.2px, transparent 1.9px),
+    radial-gradient(circle at 92% 42%, rgba(202,222,255,.38) 0 .9px, transparent 1.6px),
+    radial-gradient(circle at 6% 54%, rgba(255,255,255,.25) 0 .8px, transparent 1.5px),
+    radial-gradient(circle at 25% 49%, rgba(255,246,214,.45) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 49% 57%, rgba(202,222,255,.36) 0 .9px, transparent 1.5px),
+    radial-gradient(circle at 68% 51%, rgba(255,255,255,.26) 0 .8px, transparent 1.5px),
+    radial-gradient(circle at 87% 63%, rgba(255,246,214,.48) 0 1.1px, transparent 1.8px),
+    radial-gradient(circle at 12% 76%, rgba(202,222,255,.36) 0 .9px, transparent 1.6px),
+    radial-gradient(circle at 33% 69%, rgba(255,255,255,.24) 0 .8px, transparent 1.4px),
+    radial-gradient(circle at 55% 82%, rgba(255,246,214,.44) 0 1px, transparent 1.7px),
+    radial-gradient(circle at 79% 78%, rgba(202,222,255,.34) 0 .9px, transparent 1.6px),
+    radial-gradient(circle at 94% 88%, rgba(255,255,255,.24) 0 .8px, transparent 1.4px);
+  background-size:100% 100%;
+  background-repeat:no-repeat;
+  background-position:center;
+  opacity:.82;
+}
+body.theme-starry::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background-image:
+    radial-gradient(circle, rgba(255,246,214,.34) 0 .7px, transparent 1.3px),
+    radial-gradient(circle, rgba(202,222,255,.28) 0 .6px, transparent 1.2px),
+    radial-gradient(circle, rgba(255,255,255,.20) 0 .5px, transparent 1px);
+  background-size:173px 139px, 229px 187px, 311px 241px;
+  background-position:17px 23px, 73px 51px, 29px 97px;
+  opacity:.72;
+}

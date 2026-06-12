@@ -39,7 +39,10 @@
   };
   function applyTheme(theme) {
     const value = THEME_VALUES.includes(theme) ? theme : 'morning';
-    document.body.classList.remove(...THEME_VALUES.map(t => `theme-${t}`));
+    const themeClasses = THEME_VALUES.map(t => `theme-${t}`);
+    document.documentElement.classList.remove(...themeClasses);
+    document.body.classList.remove(...themeClasses);
+    document.documentElement.classList.add(`theme-${value}`);
     document.body.classList.add(`theme-${value}`);
     if (el.themeSelect) el.themeSelect.value = value;
     const meta = document.querySelector('meta[name="theme-color"]');
