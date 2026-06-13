@@ -41,3 +41,15 @@ v29 compact polish
 - テーマ選択を詳細設定内へ移動。
 - v28で混入した重複sectionタグを修正。
 - 機能・学習データ形式は変更なし。
+
+
+---
+
+## v30 icon edition
+
+- Added a custom home-screen icon.
+- Added apple-touch-icon.png, icon-192.png, icon-512.png, favicon-32.png.
+- Added manifest.webmanifest and icon links in index.html.
+- Existing study data format is unchanged.
+
+To reflect the new icon on iPhone, delete the old home-screen shortcut and add this app to the Home Screen again from Safari.
