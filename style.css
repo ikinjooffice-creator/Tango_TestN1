@@ -620,3 +620,214 @@ body.theme-starry::after{
   background-position:17px 23px, 73px 51px, 29px 97px;
   opacity:.72;
 }
+
+
+/* v28: compact settings layout */
+.compact-settings{
+  padding:14px;
+}
+.compact-title{
+  margin-bottom:10px;
+}
+.compact-title h2{
+  font-size:17px;
+}
+.compact-title p{
+  margin:2px 0 0;
+  font-size:12px;
+}
+.quick-settings{
+  display:grid;
+  gap:10px;
+}
+.theme-field select{
+  min-height:42px;
+  padding:10px 12px;
+  border-radius:14px;
+}
+.range-card{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.34);
+  border-radius:18px;
+  padding:10px 12px 12px;
+}
+.field-caption{
+  margin:0 0 6px;
+  color:var(--muted);
+  font-size:12px;
+  letter-spacing:.08em;
+}
+.range-row{
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:end;
+  gap:8px;
+}
+.range-row input{
+  min-height:42px;
+  padding:9px 12px;
+  border-radius:13px;
+}
+.range-separator{
+  padding-bottom:9px;
+  color:var(--muted);
+  font-weight:700;
+}
+.compact-start{
+  margin-top:12px;
+  min-height:46px;
+}
+.compact-review{
+  margin-top:12px;
+  padding-top:12px;
+}
+.compact-review .review-buttons{
+  gap:7px;
+}
+.compact-review .review-buttons button{
+  min-height:36px;
+  padding:7px 11px;
+  border-radius:13px;
+}
+.advanced-settings{
+  margin-top:12px;
+  border-top:1px solid var(--line);
+  padding-top:10px;
+}
+.advanced-settings summary{
+  cursor:pointer;
+  color:var(--accent-dark);
+  font-weight:700;
+  font-size:13px;
+  list-style:none;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.28);
+  border-radius:14px;
+  min-height:40px;
+  padding:0 12px;
+}
+.advanced-settings summary::-webkit-details-marker{
+  display:none;
+}
+.advanced-settings summary::after{
+  content:"＋";
+  color:var(--muted);
+  font-weight:800;
+}
+.advanced-settings[open] summary::after{
+  content:"−";
+}
+.advanced-grid,
+.time-grid{
+  margin-top:10px;
+}
+.advanced-settings input[type="number"],
+.advanced-settings select{
+  min-height:40px;
+  padding:9px 11px;
+}
+.chip-row{
+  gap:8px;
+  margin-top:11px;
+}
+.chip-row span{
+  width:42px;
+  flex:0 0 42px;
+  font-size:12px;
+}
+.chip-row label{
+  border:1px solid var(--line);
+  background:rgba(255,255,255,.30);
+  border-radius:999px;
+  min-height:34px;
+  padding:6px 10px;
+}
+.chip-row input{
+  margin:0;
+}
+.compact-note{
+  margin:10px 0 0;
+  line-height:1.55;
+}
+
+/* Keep compact blocks readable on dark themes */
+body.theme-starry .range-card,
+body.theme-starry .advanced-settings summary,
+body.theme-starry .chip-row label{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(242,234,219,.18);
+}
+body.theme-starry .advanced-settings{
+  border-top-color:rgba(242,234,219,.16);
+}
+body.theme-starry .advanced-settings summary::after{
+  color:#b7ac9a;
+}
+body.theme-forest .range-card,
+body.theme-forest .advanced-settings summary,
+body.theme-forest .chip-row label{
+  background:rgba(255,255,255,.50);
+}
+body.theme-cafe .range-card,
+body.theme-cafe .advanced-settings summary,
+body.theme-cafe .chip-row label{
+  background:rgba(255,252,247,.58);
+}
+body.theme-okinawa .range-card,
+body.theme-okinawa .advanced-settings summary,
+body.theme-okinawa .chip-row label{
+  background:rgba(255,255,255,.56);
+}
+
+@media(max-width:520px){
+  .compact-settings{
+    padding:13px;
+  }
+  .compact-title p{
+    display:none;
+  }
+  .range-row{
+    gap:7px;
+  }
+  .review-buttons button{
+    flex:1 1 auto;
+  }
+  .compact-review .review-buttons button{
+    min-width:72px;
+  }
+  .advanced-settings{
+    margin-top:10px;
+  }
+  .chip-row{
+    align-items:flex-start;
+  }
+  .chip-row span{
+    width:100%;
+    flex:0 0 100%;
+    margin-bottom:-2px;
+  }
+}
+
+
+/* v29: move theme into advanced settings and simplify header */
+.compact-title{
+  margin-bottom:8px;
+}
+.compact-title h2{
+  margin-bottom:0;
+}
+.advanced-theme{
+  margin-top:10px;
+}
+.advanced-theme select{
+  min-height:40px;
+  padding:9px 11px;
+  border-radius:14px;
+}
+body.theme-starry .advanced-theme select{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(242,234,219,.18);
+}

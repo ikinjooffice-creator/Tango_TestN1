@@ -54,9 +54,10 @@
     if (el.themeSelect) el.themeSelect.value = value;
     const color = THEME_COLORS[value] || THEME_COLORS.morning;
     const meta = document.querySelector('meta[name="theme-color"]');
-    if (meta) meta.setAttribute('content', color);
+    // Keep the iPhone home-screen status bar white across all themes.
+    if (meta) meta.setAttribute('content', '#ffffff');
     const appleMeta = document.getElementById('appleStatusBarMeta');
-    if (appleMeta) appleMeta.setAttribute('content', THEME_STATUSBAR[value] || 'default');
+    if (appleMeta) appleMeta.setAttribute('content', 'default');
     document.documentElement.style.backgroundColor = color;
     document.documentElement.style.setProperty('--boot-theme-color', color);
     if (document.body) document.body.style.backgroundColor = color;

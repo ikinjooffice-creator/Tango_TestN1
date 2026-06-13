@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-  <meta name="theme-color" content="#eef8fb" />
+  <!-- Always use a white status bar for better contrast -->
+  <meta name="theme-color" content="#ffffff" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta id="appleStatusBarMeta" name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="mobile-web-app-capable" content="yes" />
@@ -19,21 +20,15 @@
         cafe: '#f3eee7',
         forest: '#eaf2e7'
       };
-      var statusStyles = {
-        morning: 'default',
-        starry: 'black-translucent',
-        okinawa: 'default',
-        cafe: 'default',
-        forest: 'black-translucent'
-      };
       var color = colors[theme] || colors.morning;
       document.documentElement.classList.add('theme-' + theme);
       document.documentElement.style.backgroundColor = color;
       document.documentElement.style.setProperty('--boot-theme-color', color);
       var themeMeta = document.querySelector('meta[name="theme-color"]');
-      if (themeMeta) themeMeta.setAttribute('content', color);
+      // Always set a white status bar for all themes
+      if (themeMeta) themeMeta.setAttribute('content', '#ffffff');
       var appleMeta = document.getElementById('appleStatusBarMeta');
-      if (appleMeta) appleMeta.setAttribute('content', statusStyles[theme] || 'default');
+      if (appleMeta) appleMeta.setAttribute('content', 'default');
       window.__TARGET1900_BOOT_THEME__ = theme;
     })();
   </script>
@@ -45,82 +40,31 @@
       <button id="openSettings" class="icon-button" title="設定" aria-label="設定">⚙</button>
     </header>
 
-    <section class="panel settings" id="settingsPanel">
-      <div class="section-title">
-        <h2>学習条件</h2>
-        <p>番号・Part・Section・定着度で絞り込みます。</p>
+    <section class="panel settings compact-settings" id="settingsPanel">
+      <div class="section-title compact-title">
+        <div>
+          <h2>学習条件</h2>
+        </div>
       </div>
 
-
-      <div class="grid one theme-grid">
-        <label>テーマ
-          <select id="themeSelect">
-            <option value="morning">Fresh Morning / 清々しい朝</option>
-            <option value="starry">Starry Night / 星空の夜</option>
-            <option value="okinawa">Okinawa Breeze / 沖縄の海</option>
-            <option value="cafe">Rainy Café / 雨の日のカフェ</option>
-            <option value="forest">Forest Focus / 深い森</option>
-          </select>
-        </label>
+      <div class="quick-settings">
+        <div class="range-card">
+          <p class="field-caption">範囲</p>
+          <div class="range-row">
+            <label>No.
+              <input id="startNo" type="number" inputmode="numeric" min="1" max="1900" value="1" />
+            </label>
+            <span class="range-separator">〜</span>
+            <label>No.
+              <input id="endNo" type="number" inputmode="numeric" min="1" max="1900" value="100" />
+            </label>
+          </div>
+        </div>
       </div>
 
-      <div class="grid two">
-        <label>Part
-          <select id="partSelect">
-            <option value="all">すべて</option>
-            <option value="p1">Part1 基本 1–800</option>
-            <option value="p2">Part2 重要 801–1500</option>
-            <option value="p3">Part3 難単語 1501–1900</option>
-          </select>
-        </label>
-        <label>Section
-          <select id="sectionSelect">
-            <option value="all">すべて</option>
-          </select>
-        </label>
-      </div>
+      <button id="startBtn" class="primary compact-start">学習開始</button>
 
-      <div class="grid two compact">
-        <label>開始 No.
-          <input id="startNo" type="number" inputmode="numeric" min="1" max="1900" value="1" />
-        </label>
-        <label>終了 No.
-          <input id="endNo" type="number" inputmode="numeric" min="1" max="1900" value="100" />
-        </label>
-      </div>
-
-      <div class="grid two compact">
-        <label>意味・例文表示まで（秒）
-          <input id="revealSeconds" type="number" min="0" max="60" step="0.5" value="3" />
-        </label>
-        <label>次の単語へ進むまで（秒）
-          <input id="nextSeconds" type="number" min="0" max="120" step="0.5" value="4" />
-        </label>
-      </div>
-
-      <div class="choice-row">
-        <span>即答</span>
-        <label><input type="radio" name="instantFilter" value="all" checked> 全部</label>
-        <label><input type="radio" name="instantFilter" value="off"> OFF</label>
-        <label><input type="radio" name="instantFilter" value="on"> ON</label>
-      </div>
-
-      <div class="choice-row wrap">
-        <span>回数</span>
-        <label><input class="countFilter" type="checkbox" value="1" checked> 1</label>
-        <label><input class="countFilter" type="checkbox" value="2" checked> 2</label>
-        <label><input class="countFilter" type="checkbox" value="3"> 3</label>
-      </div>
-
-      <div class="choice-row wrap">
-        <label><input id="shuffleMode" type="checkbox"> シャッフル</label>
-        <label><input id="loopMode" type="checkbox" checked> ループ</label>
-        <label><input id="autoSpeak" type="checkbox" checked> 自動読み上げ</label>
-      </div>
-
-      <button id="startBtn" class="primary">学習開始</button>
-
-      <div class="review-tools">
+      <div class="review-tools compact-review">
         <p class="review-title">復習</p>
         <div class="review-buttons">
           <button id="recentDaysBtn" type="button">2日分</button>
@@ -129,8 +73,68 @@
           <button id="hardModeBtn" type="button">苦手</button>
           <button id="exportHardBtn" type="button">苦手CSV</button>
         </div>
-        <p class="note small-note">通常学習で表示した単語を日付ごとに自動記録します。「2日分」は昨日・一昨日の未復習分を呼び出し、復習モードで一度表示された単語は復習リストから外れます。「苦手」は★を付けた単語だけを呼び出します。学習データの復元形式は変更しません。</p>
       </div>
+
+      <details class="advanced-settings">
+        <summary>詳細設定</summary>
+
+        <label class="theme-field advanced-theme">テーマ
+          <select id="themeSelect">
+            <option value="morning">Fresh Morning / 清々しい朝</option>
+            <option value="starry">Starry Night / 星空の夜</option>
+            <option value="okinawa">Okinawa Breeze / 沖縄の海</option>
+            <option value="cafe">Rainy Café / 雨の日のカフェ</option>
+            <option value="forest">Forest Focus / 深い森</option>
+          </select>
+        </label>
+
+        <div class="grid two advanced-grid">
+          <label>Part
+            <select id="partSelect">
+              <option value="all">すべて</option>
+              <option value="p1">Part1 基本 1–800</option>
+              <option value="p2">Part2 重要 801–1500</option>
+              <option value="p3">Part3 難単語 1501–1900</option>
+            </select>
+          </label>
+          <label>Section
+            <select id="sectionSelect">
+              <option value="all">すべて</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="grid two compact time-grid">
+          <label>表示まで（秒）
+            <input id="revealSeconds" type="number" min="0" max="60" step="0.5" value="3" />
+          </label>
+          <label>次へ（秒）
+            <input id="nextSeconds" type="number" min="0" max="120" step="0.5" value="4" />
+          </label>
+        </div>
+
+        <div class="choice-row chip-row">
+          <span>即答</span>
+          <label><input type="radio" name="instantFilter" value="all" checked> 全部</label>
+          <label><input type="radio" name="instantFilter" value="off"> OFF</label>
+          <label><input type="radio" name="instantFilter" value="on"> ON</label>
+        </div>
+
+        <div class="choice-row wrap chip-row">
+          <span>回数</span>
+          <label><input class="countFilter" type="checkbox" value="1" checked> 1</label>
+          <label><input class="countFilter" type="checkbox" value="2" checked> 2</label>
+          <label><input class="countFilter" type="checkbox" value="3"> 3</label>
+        </div>
+
+        <div class="choice-row wrap chip-row">
+          <label><input id="shuffleMode" type="checkbox"> シャッフル</label>
+          <label><input id="loopMode" type="checkbox" checked> ループ</label>
+          <label><input id="autoSpeak" type="checkbox" checked> 自動読み上げ</label>
+        </div>
+
+        <p class="note small-note compact-note">通常学習で表示した単語を日付ごとに自動記録します。「2日分」は昨日・一昨日の未復習分を呼び出し、復習モードで一度表示された単語は復習リストから外れます。「苦手」は★を付けた単語だけを呼び出します。学習データの復元形式は変更しません。</p>
+      </details>
     </section>
 
     <section class="card" aria-live="polite">
