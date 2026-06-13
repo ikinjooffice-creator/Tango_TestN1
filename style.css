@@ -831,3 +831,47 @@ body.theme-starry .advanced-theme select{
   background:rgba(255,255,255,.07);
   border-color:rgba(242,234,219,.18);
 }
+
+/* v31: fix advanced settings horizontal overflow on small screens */
+html,
+body{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+.app,
+.panel,
+.settings,
+.advanced-settings{
+  max-width:100%;
+}
+.advanced-settings *{
+  max-width:100%;
+}
+.chip-row{
+  flex-wrap:wrap;
+  max-width:100%;
+}
+.chip-row label{
+  white-space:nowrap;
+}
+@media(max-width:520px){
+  .advanced-settings .chip-row{
+    flex-wrap:wrap;
+    align-items:center;
+    gap:8px;
+  }
+  .advanced-settings .chip-row span{
+    width:100%;
+    flex:0 0 100%;
+    margin-bottom:0;
+  }
+  .advanced-settings .chip-row label{
+    flex:0 1 auto;
+    max-width:100%;
+  }
+  .advanced-settings .compact-note{
+    word-break:normal;
+    overflow-wrap:anywhere;
+  }
+}
